@@ -1,5 +1,5 @@
 # PatchThatAMSI
-this repo contains 2 AMSI patches , both force the triggering of a conditional jump inside AmsiOpenSession()  that close the Amsi scanning session.   
+this repo contains 6 AMSI patches , all force the triggering of a conditional jump inside AmsiOpenSession()  that close the Amsi scanning session.   
 The 1st patch by corrupting the Amsi context header.  
 The 2nd patch by changing the string "AMSI" that will be compared to the Amsi context header to "D1RK".  
 The Others set ZF to 1 and trigger the jump.
